@@ -1,4 +1,4 @@
-`include "ClickBase.svh"
+`include "ifc_click.svh"
 
 module Fibonacci # (
     parameter DATA_WIDTH = 15
@@ -8,9 +8,9 @@ module Fibonacci # (
     output [DATA_WIDTH:0] o_data
     );    
 
-clickBase C0(), C1(), C2(), C3(), C4(), C5(),
+ifc_click C0(), C1(), C2(), C3(), C4(), C5(),
           C6(), C7(), C8(), C9(), C10();
-clickBaseNoData C11();
+ifc_clickNoData C11();
 
 click_element_decoupled #(
         .DATA_WIDTH (DATA_WIDTH),

@@ -1,7 +1,7 @@
-`ifndef CLICK_BASE
-`define CLICK_BASE
+`ifndef CLICK_INTERFACE
+`define CLICK_INTERFACE
 
-interface clickBase #(parameter int DATA_WIDTH = 7);
+interface ifc_click #(parameter int DATA_WIDTH = 7);
     logic req;
     logic ack;
     logic [DATA_WIDTH:0] data;
@@ -14,7 +14,7 @@ interface clickBase #(parameter int DATA_WIDTH = 7);
 
 endinterface
 
-interface clickBaseNoData #(parameter int DATA_WIDTH = 7);
+interface ifc_click_nodata #(parameter int DATA_WIDTH = 7);
     logic req;
     logic ack;
     
