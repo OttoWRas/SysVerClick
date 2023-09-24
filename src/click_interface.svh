@@ -1,10 +1,10 @@
 `ifndef CLICK_INTERFACE
 `define CLICK_INTERFACE
 
-interface ifc_click #(parameter int DATA_WIDTH = 7);
+interface ifc_click #(parameter type T = logic );
     logic req;
     logic ack;
-    logic [DATA_WIDTH:0] data;
+    T data;
     
     modport in (input req, data,
                 output ack);
@@ -12,16 +12,10 @@ interface ifc_click #(parameter int DATA_WIDTH = 7);
     modport out(input ack,
                 output req, data);
 
-endinterface
-
-interface ifc_click_nodata #(parameter int DATA_WIDTH = 7);
-    logic req;
-    logic ack;
-    
-    modport in (input req,
+    modport in_no_data (input req,
                 output ack);
-                
-    modport out(input ack,
+
+    modport out_no_data(input ack,
                 output req);
 
 endinterface
