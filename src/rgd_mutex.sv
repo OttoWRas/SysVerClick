@@ -1,14 +1,53 @@
-module mutex (
+module mutex #(
+    parameter DEBUG = 0
+) (
     input wire logic i_R1, i_R2,
     output wire logic o_G1, o_G2
 );
+    generate
+        if (DEBUG == 1) begin
+            semaphore access;
+            logic R1, R2, O1, O2;
+            
+            initial begin
+                O1 = 0;
+                O2 = 0;
+                access = new (1);
+                fork
+                    t_RG(R1, O1);
+                    t_RG(R2, O2);
+                join_none
+            end
+            
+            assign R1 = i_R1;
+            assign R2 = i_R2;
+            assign o_G1 = O1;
+            assign o_G2 = O2;
 
-    wire O1 = !(i_R1 && O2);
-    wire O2 = !(i_R2 && O1);
+            task automatic t_RG (ref logic R, G);                
+                forever begin
+                    @(posedge R) begin
+                        access.get(1);
+                        G = 1;
+                    end
+                    @(negedge R) begin
+                        G = 0;
+                        access.put(1);
+                    end
+                end
+            endtask //automatic
+            
+        end else begin
+            wire O1, O2;
 
-    assign o_G1 = O2 && !O1;
-    assign o_G2 = O1 && !O2;
+            assign O1 = !(i_R1 && O2);
+            assign O2 = !(i_R2 && O1);
 
+            assign o_G1 = O2 && !O1;
+            assign o_G2 = O1 && !O2;
+        end
+
+    endgenerate
 endmodule
 
 module rgd_mutex #(
