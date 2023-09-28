@@ -20,77 +20,88 @@ module rgd_mutex #(
     parameter PHASE_INIT_OUT_D = 0
     ) (
     wire logic rst,
-    ifc_click inA,
-    ifc_click inB,
-    ifc_click outA,
-    ifc_click outB
+    
+    // Channel A
+    input wire logic inA_req,
+    output wire logic outA_req,
+    input wire logic inA_done,
+    
+    // Channel B
+    input wire logic inB_req,
+    output wire logic outB_req,
+    input wire logic inB_done
 );
     // Clock tick
-    logic click_a, click_b;
+    (* dont_touch = "yes" *) logic click_a, click_b;
 
     // Input registers
-    logic phase_in_a;
-    logic phase_in_b;
+    (* dont_touch = "yes" *) logic phase_in_a;
+    (* dont_touch = "yes" *) logic phase_in_b;
 
     // Output registers
-    logic phase_out_a;
-    logic phase_out_b;
-    logic phase_out_c;
-    logic phase_out_d;
+    (* dont_touch = "yes" *) logic phase_out_a;
+    (* dont_touch = "yes" *) logic phase_out_b;
+    (* dont_touch = "yes" *) logic phase_out_c;
+    (* dont_touch = "yes" *) logic phase_out_d;
+    
+    logic inA_done, inB_done;
 
     // Input state
     logic a_ready = phase_in_a ^ inA_done;
     logic b_ready = phase_in_b ^ inB_done;
 
     // Pulse trigger
-    logic pulse_a = ((!phase_out_a && inA.req) && phase_in_a) 
-    || ((phase_out_a && ! inA.req) &&  phase_in_a);
+    logic pulse_a = ((!phase_out_a && inA_req) && phase_in_a) 
+    || ((phase_out_a && ! inA_req) &&  phase_in_a);
 
-    logic pulse_b = ((!phase_out_b && inB.req) && phase_in_b) 
-    || ((phase_out_b && ! inB.req) &&  phase_in_b);
+    logic pulse_b = ((!phase_out_c && inB_req) && phase_in_b) 
+    || ((phase_out_c && ! inB_req) &&  phase_in_b);
 
     // Control path
-    assign outA.req = phase_out_a;
-    assign outB.req = phase_out_c;
+    assign outA_req = phase_out_b;
+    assign outB_req = phase_out_d;
     
-    mutex u_M0 (
+    (* DONT_TOUCH = "yes" *) mutex u_M0 (
         a_ready, b_ready, click_a, click_b
     );
 
     always_ff @(posedge pulse_a, posedge rst)
         if (rst) begin
-            phase <= PHASE_INIT;
+            phase_in_a <= PHASE_INIT_IN_A;
         end else if (pulse_a) begin
-            phase_in_a <= #5 !phase_in_a;
+            phase_in_a <= !phase_in_a;
         end
     
     always_ff @(posedge pulse_b, posedge rst)
         if (rst) begin
-            phase <= PHASE_INIT;
+            phase_in_b <= PHASE_INIT_IN_B;
         end else if (pulse_b) begin
-            phase_in_a <= #5 !phase_in_a;
+            phase_in_b <= !phase_in_b;
         end
 
     always_ff @(posedge click_a, posedge rst)
-        if (rst) begin
-            phase_out_a <= PHASE_INIT_OUT_A;
+        if (rst)
             phase_out_b <= PHASE_INIT_OUT_B;
-        end else if (click_a) begin
-            phase_out_a <= #5 !phase_out_a;
-        end
+        else
+            phase_out_b <= !phase_out_b;
 
-    always_ff @(negedge click_a)
-        phase_out_b <= #5 !phase_out_b;
+    always_ff @(negedge click_a, posedge rst)
+        if (rst)
+            phase_out_a <= PHASE_INIT_OUT_A;
+        else
+            phase_out_a <= !phase_out_a;
 
     always_ff @(posedge click_b, posedge rst)
-        if (rst) begin
-            phase_out_c <= PHASE_INIT_OUT_C;
+        if (rst)
             phase_out_d <= PHASE_INIT_OUT_D;
-        end else if (click_B) begin
-            phase_out_c <= #5 !phase_out_c;
-        end
+        else 
+            phase_out_d <= !phase_out_d;
 
-    always_ff @(negedge click_a)
-        phase_out_d <= #5 !phase_out_d;
+    always_ff @(negedge click_b, posedge rst)
+        if (rst)
+            phase_out_c <= PHASE_INIT_OUT_C;
+        else 
+            phase_out_c <= !phase_out_c;
+
 
 endmodule
