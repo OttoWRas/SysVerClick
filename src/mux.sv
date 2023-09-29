@@ -6,6 +6,7 @@ module click_mux_2 #(
     parameter PHASE_INIT_C = 0,
     parameter PHASE_INIT_SEL = 0
 ) (
+    input wire logic rst,
     ifc_click.in inA,
     ifc_click.in inB,
     ifc_click.out outC,

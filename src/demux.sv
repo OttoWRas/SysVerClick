@@ -4,6 +4,7 @@ module click_demux_2 #(
     parameter PHASE_INIT_C = 0,
     parameter PHASE_INIT_SEL = 0
 ) (
+    input wire logic rst,
     ifc_click.in inA,
     ifc_click.out outB,
     ifc_click.out outC,
