@@ -1,5 +1,5 @@
 module mutex #(
-    parameter DEBUG = 0
+    parameter DEBUG = 1
 ) (
     input wire logic i_R1, i_R2,
     output wire logic o_G1, o_G2
@@ -27,12 +27,12 @@ module mutex #(
             task automatic t_RG (ref logic R, G);                
                 forever begin
                     @(posedge R) begin
-                        access.get(1);
-                        G = 1;
+                        #2 access.get(1);
+                        #2 G = 1;
                     end
                     @(negedge R) begin
-                        G = 0;
-                        access.put(1);
+                        #2 G = 0;
+                        #2 access.put(1);
                     end
                 end
             endtask //automatic
@@ -58,7 +58,7 @@ module rgd_mutex #(
     parameter PHASE_INIT_OUT_C = 0,
     parameter PHASE_INIT_OUT_D = 0
     ) (
-    wire logic rst,
+    input wire logic rst,
     
     // Channel A
     input wire logic inA_req,
@@ -71,8 +71,9 @@ module rgd_mutex #(
     input wire logic inB_done
 );
     // Clock tick
-    (* dont_touch = "yes" *) logic click_a, click_b;
-
+    logic click_a, click_b;
+    logic a_ready, b_ready;
+    logic pulse_a, pulse_b;
     // Input registers
     (* dont_touch = "yes" *) logic phase_in_a;
     (* dont_touch = "yes" *) logic phase_in_b;
@@ -82,18 +83,16 @@ module rgd_mutex #(
     (* dont_touch = "yes" *) logic phase_out_b;
     (* dont_touch = "yes" *) logic phase_out_c;
     (* dont_touch = "yes" *) logic phase_out_d;
-    
-    logic inA_done, inB_done;
 
     // Input state
-    logic a_ready = phase_in_a ^ inA_done;
-    logic b_ready = phase_in_b ^ inB_done;
+    assign #2 a_ready = phase_in_a ^ inA_done;
+    assign #2 b_ready = phase_in_b ^ inB_done;
 
     // Pulse trigger
-    logic pulse_a = ((!phase_out_a && inA_req) && phase_in_a) 
+    assign #6 pulse_a = ((!phase_out_a && inA_req) && !phase_in_a) 
     || ((phase_out_a && ! inA_req) &&  phase_in_a);
 
-    logic pulse_b = ((!phase_out_c && inB_req) && phase_in_b) 
+    assign #6 pulse_b = ((!phase_out_c && inB_req) && !phase_in_b) 
     || ((phase_out_c && ! inB_req) &&  phase_in_b);
 
     // Control path
@@ -106,41 +105,41 @@ module rgd_mutex #(
 
     always_ff @(posedge pulse_a, posedge rst)
         if (rst) begin
-            phase_in_a <= PHASE_INIT_IN_A;
+            phase_in_a <=  PHASE_INIT_IN_A;
         end else if (pulse_a) begin
-            phase_in_a <= !phase_in_a;
+            phase_in_a <= #5 !phase_in_a;
         end
     
     always_ff @(posedge pulse_b, posedge rst)
         if (rst) begin
             phase_in_b <= PHASE_INIT_IN_B;
         end else if (pulse_b) begin
-            phase_in_b <= !phase_in_b;
+            phase_in_b <= #5 !phase_in_b;
         end
 
     always_ff @(posedge click_a, posedge rst)
         if (rst)
             phase_out_b <= PHASE_INIT_OUT_B;
         else
-            phase_out_b <= !phase_out_b;
+            phase_out_b <= #5 !phase_out_b;
 
     always_ff @(negedge click_a, posedge rst)
         if (rst)
             phase_out_a <= PHASE_INIT_OUT_A;
         else
-            phase_out_a <= !phase_out_a;
+            phase_out_a <= #5 !phase_out_a;
 
     always_ff @(posedge click_b, posedge rst)
         if (rst)
             phase_out_d <= PHASE_INIT_OUT_D;
         else 
-            phase_out_d <= !phase_out_d;
+            phase_out_d <= #5 !phase_out_d;
 
     always_ff @(negedge click_b, posedge rst)
         if (rst)
             phase_out_c <= PHASE_INIT_OUT_C;
         else 
-            phase_out_c <= !phase_out_c;
+            phase_out_c <= #5 !phase_out_c;
 
 
 endmodule
