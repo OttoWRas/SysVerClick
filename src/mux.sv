@@ -1,4 +1,4 @@
-`include "click_interface.svh"
+`include "ifc_click.svh"
 
 module click_mux_2 #(
     parameter PHASE_INIT_A = 0,

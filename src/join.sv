@@ -1,4 +1,4 @@
-`include "click_interface.svh"
+`include "ifc_click.svh"
 
 module click_join #(
     parameter PHASE_INIT = 0
