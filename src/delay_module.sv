@@ -4,8 +4,13 @@ module delay_module #(
     input a,
     output b
 );
-    localparam [3:0] y_val  = {0,1,0,1,0,1,0,1,2,3,2,3,2,3,
-    2,3,4,5,4,5,4,5,4,5,6,7,6,7,6,7};
+    /* verilator lint_off WIDTHTRUNC */
+    localparam [3:0] y_val  = {4'd0,4'd1,4'd0,4'd1,4'd0,4'd1,4'd0,
+    4'd1,4'd2,4'd3,4'd2,4'd3,4'd2,4'd3,
+    4'd2,4'd3,4'd4,4'd5,4'd4,4'd5,4'd4,
+    4'd5,4'd4,4'd5,4'd6,4'd7,4'd6,4'd7,4'd6,4'd7};
+    /* verilator lint_on WIDTHTRUNC */
+
     wire [DELAY_SIZE : 0] s_connect;
     assign s_connect[0] = a;
     genvar index;
